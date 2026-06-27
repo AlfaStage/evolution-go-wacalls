@@ -33,6 +33,13 @@ type Instance struct {
 	ReadMessages  bool   `json:"readMessages" gorm:"default:false"`
 	IgnoreGroups  bool   `json:"ignoreGroups" gorm:"default:false"`
 	IgnoreStatus  bool   `json:"ignoreStatus" gorm:"default:false"`
+
+	// SIP Settings (WaCalls Vapi)
+	SipEnable   bool   `json:"sipEnable" gorm:"default:false"`
+	SipHost     string `json:"sipHost" gorm:"default:''"`
+	SipPort     int    `json:"sipPort" gorm:"default:5060"`
+	SipUser     string `json:"sipUser" gorm:"default:''"`
+	SipPassword string `json:"sipPassword" gorm:"default:''"`
 }
 
 // AdvancedSettings representa as configurações avançadas de uma instância
@@ -43,6 +50,11 @@ type AdvancedSettings struct {
 	ReadMessages  bool   `json:"readMessages"`
 	IgnoreGroups  bool   `json:"ignoreGroups"`
 	IgnoreStatus  bool   `json:"ignoreStatus"`
+	SipEnable     bool   `json:"sipEnable"`
+	SipHost       string `json:"sipHost"`
+	SipPort       int    `json:"sipPort"`
+	SipUser       string `json:"sipUser"`
+	SipPassword   string `json:"sipPassword"`
 }
 
 func (m *Instance) BeforeCreate(tx *gorm.DB) (err error) {

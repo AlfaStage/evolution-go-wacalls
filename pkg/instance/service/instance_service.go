@@ -44,6 +44,7 @@ type InstanceService interface {
 	GetLogs(instanceId string, startDate, endDate time.Time, level string, limit int) ([]logger_wrapper.LogEntry, error)
 	GetAdvancedSettings(instanceId string) (*instance_model.AdvancedSettings, error)
 	UpdateAdvancedSettings(instanceId string, settings *instance_model.AdvancedSettings) error
+	GetWhatsmeowService() whatsmeow_service.WhatsmeowService
 }
 
 type instances struct {
@@ -843,6 +844,10 @@ func (i instances) UpdateAdvancedSettings(instanceId string, settings *instance_
 
 	i.loggerWrapper.GetLogger(instanceId).LogInfo("[%s] Advanced settings updated successfully", instanceId)
 	return nil
+}
+
+func (i instances) GetWhatsmeowService() whatsmeow_service.WhatsmeowService {
+	return i.whatsmeowService
 }
 
 func NewInstanceService(

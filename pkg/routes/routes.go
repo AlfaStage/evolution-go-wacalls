@@ -21,6 +21,7 @@ import (
 	send_handler "github.com/EvolutionAPI/evolution-go/pkg/sendMessage/handler"
 	server_handler "github.com/EvolutionAPI/evolution-go/pkg/server/handler"
 	user_handler "github.com/EvolutionAPI/evolution-go/pkg/user/handler"
+	wacalls_handler "github.com/EvolutionAPI/evolution-go/pkg/wacalls/handler"
 )
 
 type Routes struct {
@@ -38,6 +39,7 @@ type Routes struct {
 	newsletterHandler       newsletter_handler.NewsletterHandler
 	pollHandler             *poll_handler.PollHandler
 	serverHandler           server_handler.ServerHandler
+	waCallsHandler          wacalls_handler.CallHandler
 }
 
 func (r *Routes) AssignRoutes(eng *gin.Engine) {
@@ -243,6 +245,19 @@ func (r *Routes) AssignRoutes(eng *gin.Engine) {
 		}
 	}
 
+	routes = eng.Group("/instance/:instanceName/wacalls")
+	{
+		routes.Use(r.authMiddleware.Auth)
+		{
+			routes.POST("/start", r.waCallsHandler.StartCall)
+			routes.POST("/:id/webrtc", r.waCallsHandler.WebRTC)
+			routes.POST("/:id/accept", r.waCallsHandler.Accept)
+			routes.POST("/:id/reject", r.waCallsHandler.Reject)
+			routes.POST("/:id/end", r.waCallsHandler.EndCall)
+			routes.POST("/vapi-test", r.waCallsHandler.VapiTestCall)
+		}
+	}
+
 }
 
 func NewRouter(
@@ -259,6 +274,7 @@ func NewRouter(
 	newsletterHandler newsletter_handler.NewsletterHandler,
 	pollHandler *poll_handler.PollHandler,
 	serverHandler server_handler.ServerHandler,
+	waCallsHandler wacalls_handler.CallHandler,
 ) *Routes {
 	return &Routes{
 		authMiddleware:          authMiddleware,
@@ -275,5 +291,6 @@ func NewRouter(
 		newsletterHandler:       newsletterHandler,
 		pollHandler:             pollHandler,
 		serverHandler:           serverHandler,
+		waCallsHandler:          waCallsHandler,
 	}
 }

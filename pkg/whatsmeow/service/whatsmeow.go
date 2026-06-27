@@ -47,6 +47,7 @@ import (
 	poll_service "github.com/EvolutionAPI/evolution-go/pkg/poll/service"
 	storage_interfaces "github.com/EvolutionAPI/evolution-go/pkg/storage/interfaces"
 	"github.com/EvolutionAPI/evolution-go/pkg/utils"
+	call_service "github.com/EvolutionAPI/evolution-go/pkg/wacalls/service"
 )
 
 type WhatsmeowService interface {
@@ -61,6 +62,7 @@ type WhatsmeowService interface {
 	UpdateInstanceSettings(instanceId string) error
 	UpdateInstanceAdvancedSettings(instanceId string) error
 	GetPollService() poll_service.PollService // NOVO: Acesso ao serviço de polls
+	GetClient(instanceId string) (*whatsmeow.Client, error)
 }
 
 type clientVersion struct {
@@ -849,6 +851,9 @@ func (mycli *MyClient) myEventHandler(rawEvt interface{}) {
 	postMap := make(map[string]interface{})
 	postMap["data"] = rawEvt
 	doWebhook := false
+
+	// Despacha eventos para o CallService (WaCalls)
+	call_service.GetCallService().HandleEvent(userID, mycli.WAClient, rawEvt)
 
 	switch evt := rawEvt.(type) {
 	case *events.AppStateSyncComplete:
@@ -2692,6 +2697,13 @@ func NewWhatsmeowService(
 // GetPollService retorna o serviço de polls (evita dupla inicialização)
 func (w *whatsmeowService) GetPollService() poll_service.PollService {
 	return w.pollService
+}
+
+func (w *whatsmeowService) GetClient(instanceId string) (*whatsmeow.Client, error) {
+	if client, ok := w.clientPointer[instanceId]; ok {
+		return client, nil
+	}
+	return nil, errors.New("client not found for instance")
 }
 
 // cleanSenderID remove a parte ":numero" do sender ID para exibir apenas o remoteJid correto

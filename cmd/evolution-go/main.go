@@ -61,6 +61,7 @@ import (
 	minio_storage "github.com/EvolutionAPI/evolution-go/pkg/storage/minio"
 	user_handler "github.com/EvolutionAPI/evolution-go/pkg/user/handler"
 	user_service "github.com/EvolutionAPI/evolution-go/pkg/user/service"
+	wacalls_handler "github.com/EvolutionAPI/evolution-go/pkg/wacalls/handler"
 	whatsmeow_service "github.com/EvolutionAPI/evolution-go/pkg/whatsmeow/service"
 	amqp "github.com/rabbitmq/amqp091-go"
 )
@@ -198,6 +199,7 @@ func setupRouter(db *gorm.DB, authDB *sql.DB, sqliteDB *sql.DB, config *config.C
 
 	// NOVO: PollHandler usando PollService já inicializado no whatsmeowService (evita dupla inicialização)
 	pollHandler := poll_handler.NewPollHandler(whatsmeowService.GetPollService(), loggerWrapper)
+	waCallsHandler := wacalls_handler.NewCallHandler(instanceService)
 
 	r := gin.Default()
 
@@ -234,6 +236,7 @@ func setupRouter(db *gorm.DB, authDB *sql.DB, sqliteDB *sql.DB, config *config.C
 		newsletter_handler.NewNewsletterHandler(newsletterService),
 		pollHandler,
 		server_handler.NewServerHandler(),
+		waCallsHandler,
 	).AssignRoutes(r)
 
 	if config.ConnectOnStartup {

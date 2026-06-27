@@ -3473,6 +3473,242 @@
                     }
                 }
             }
+        },
+        "/instance/{instanceName}/wacalls/start": {
+            "post": {
+                "description": "Inicia uma ligação VoIP direta via WhatsApp para o número especificado. A instância precisa estar conectada e pareada.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["WaCalls"],
+                "summary": "Iniciar ligação WhatsApp",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da instância",
+                        "name": "instanceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados da ligação",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "phone": {"type": "string", "example": "+5511999999999"},
+                                "duration_ms": {"type": "integer", "example": 30000},
+                                "record": {"type": "boolean", "example": false}
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ligação iniciada com sucesso",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    },
+                    "400": {
+                        "description": "Número de telefone obrigatório",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    },
+                    "503": {
+                        "description": "WhatsApp não conectado",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    }
+                }
+            }
+        },
+        "/instance/{instanceName}/wacalls/{id}/accept": {
+            "post": {
+                "description": "Aceita uma ligação recebida (incoming call) nesta instância.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["WaCalls"],
+                "summary": "Aceitar ligação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da instância",
+                        "name": "instanceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID da ligação",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ligação aceita",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    },
+                    "404": {
+                        "description": "Ligação não encontrada",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    }
+                }
+            }
+        },
+        "/instance/{instanceName}/wacalls/{id}/reject": {
+            "post": {
+                "description": "Rejeita uma ligação recebida (incoming call) nesta instância.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["WaCalls"],
+                "summary": "Rejeitar ligação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da instância",
+                        "name": "instanceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID da ligação",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ligação rejeitada",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    }
+                }
+            }
+        },
+        "/instance/{instanceName}/wacalls/{id}/end": {
+            "post": {
+                "description": "Encerra uma ligação ativa nesta instância.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["WaCalls"],
+                "summary": "Encerrar ligação",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da instância",
+                        "name": "instanceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID da ligação",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Ligação encerrada"
+                    }
+                }
+            }
+        },
+        "/instance/{instanceName}/wacalls/{id}/webrtc": {
+            "post": {
+                "description": "Envia um SDP Offer e recebe um SDP Answer para a negociação WebRTC da ligação.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["WaCalls"],
+                "summary": "WebRTC SDP Exchange",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da instância",
+                        "name": "instanceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "ID da ligação",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "SDP Offer",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "sdp": {"type": "string"},
+                                "type": {"type": "string", "example": "offer"}
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "SDP Answer",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    },
+                    "501": {
+                        "description": "Endpoint não totalmente portado",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    }
+                }
+            }
+        },
+        "/instance/{instanceName}/wacalls/vapi-test": {
+            "post": {
+                "description": "Dispara uma ligação de teste usando a integração SIP com o Vapi.ai. O SIP deve estar habilitado e configurado com o token do Vapi na instância.",
+                "consumes": ["application/json"],
+                "produces": ["application/json"],
+                "tags": ["WaCalls"],
+                "summary": "Testar ligação via Vapi.ai",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nome da instância",
+                        "name": "instanceName",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Dados do teste Vapi",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object",
+                            "properties": {
+                                "assistantId": {"type": "string", "example": "asst_xxx"},
+                                "phoneNumberId": {"type": "string", "example": "phone_xxx"},
+                                "customerNumber": {"type": "string", "example": "+5511999999999"}
+                            }
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Ligação Vapi iniciada com sucesso",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    },
+                    "400": {
+                        "description": "SIP não habilitado ou dados inválidos",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    },
+                    "500": {
+                        "description": "Erro ao chamar Vapi",
+                        "schema": {"$ref": "#/definitions/gin.H"}
+                    }
+                }
+            }
         }
     },
     "definitions": {

@@ -45,15 +45,19 @@ func normalizePhone(p string) string {
 	return b.String()
 }
 
-// StartCall initiates an outgoing call
-// @Summary Start a call
-// @Description Initiate a WebRTC call
-// @Tags Call
+// StartCall initiates an outgoing WhatsApp VoIP call
+// @Summary Iniciar ligação WhatsApp
+// @Description Inicia uma ligação VoIP direta via WhatsApp para o número especificado. A instância precisa estar conectada e pareada.
+// @Tags WaCalls
 // @Accept json
 // @Produce json
-// @Param instanceName path string true "Instance name"
-// @Param request body map[string]interface{} true "Call request data"
-// @Router /instance/{instanceName}/calls [post]
+// @Param instanceName path string true "Nome da instância"
+// @Param request body object true "Dados da ligação" example({"phone":"+5511999999999","duration_ms":30000,"record":false})
+// @Success 200 {object} object "Ligação iniciada com sucesso" example({"call":{"callId":"abc123"}})
+// @Failure 400 {object} object "Número de telefone obrigatório"
+// @Failure 503 {object} object "WhatsApp não conectado"
+// @Router /instance/{instanceName}/wacalls/start [post]
+// @Security ApiKeyAuth
 func (h *callHandler) StartCall(ctx *gin.Context) {
 	getInstance := ctx.MustGet("instance")
 	instance, ok := getInstance.(*instance_model.Instance)
@@ -94,26 +98,36 @@ func (h *callHandler) StartCall(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"call": map[string]string{"callId": callID}})
 }
 
-// WebRTC handles WebRTC SDP offer
-// @Summary Send WebRTC SDP Offer
-// @Description Send SDP Offer and get Answer
-// @Tags Call
+// WebRTC handles WebRTC SDP exchange
+// @Summary WebRTC SDP Exchange
+// @Description Envia um SDP Offer e recebe um SDP Answer para a negociação WebRTC da ligação.
+// @Tags WaCalls
 // @Accept json
 // @Produce json
-// @Param instanceName path string true "Instance name"
-// @Param id path string true "Call ID"
-// @Param request body map[string]interface{} true "SDP offer"
-// @Router /instance/{instanceName}/calls/{id}/webrtc [post]
+// @Param instanceName path string true "Nome da instância"
+// @Param id path string true "ID da ligação"
+// @Param request body object true "SDP Offer"
+// @Success 200 {object} object "SDP Answer"
+// @Failure 501 {object} object "Endpoint não totalmente portado"
+// @Router /instance/{instanceName}/wacalls/{id}/webrtc [post]
+// @Security ApiKeyAuth
 func (h *callHandler) WebRTC(ctx *gin.Context) {
-	
-	// Para este endpoint precisaríamos do Bridge, mas como o WaCalls lida com 
-	// PCM nativamente, o Bridge precisa ser instanciado aqui (como em httpapi.go do WaCalls).
-	// Devido a simplificação e separação de pacotes, a implementação exata 
-	// requereria a cópia do bridge do WaCalls. 
-	// Exemplo de resposta provisória:
 	ctx.JSON(http.StatusNotImplemented, gin.H{"error": "webrtc endpoint not fully ported without bridge"})
 }
 
+// Accept accepts an incoming call
+// @Summary Aceitar ligação
+// @Description Aceita uma ligação recebida (incoming call) nesta instância.
+// @Tags WaCalls
+// @Accept json
+// @Produce json
+// @Param instanceName path string true "Nome da instância"
+// @Param id path string true "ID da ligação"
+// @Success 200 {object} object "Ligação aceita"
+// @Failure 404 {object} object "Ligação não encontrada"
+// @Failure 500 {object} object "Erro interno"
+// @Router /instance/{instanceName}/wacalls/{id}/accept [post]
+// @Security ApiKeyAuth
 func (h *callHandler) Accept(ctx *gin.Context) {
 	getInstance := ctx.MustGet("instance")
 	instance, _ := getInstance.(*instance_model.Instance)
@@ -133,6 +147,17 @@ func (h *callHandler) Accept(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"call": map[string]string{"callId": callID}})
 }
 
+// Reject rejects an incoming call
+// @Summary Rejeitar ligação
+// @Description Rejeita uma ligação recebida (incoming call) nesta instância.
+// @Tags WaCalls
+// @Accept json
+// @Produce json
+// @Param instanceName path string true "Nome da instância"
+// @Param id path string true "ID da ligação"
+// @Success 200 {object} object "Ligação rejeitada"
+// @Router /instance/{instanceName}/wacalls/{id}/reject [post]
+// @Security ApiKeyAuth
 func (h *callHandler) Reject(ctx *gin.Context) {
 	getInstance := ctx.MustGet("instance")
 	instance, _ := getInstance.(*instance_model.Instance)
@@ -147,7 +172,19 @@ func (h *callHandler) Reject(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "ok"})
 }
 
-// VapiTestCall chama a API do Vapi.ai para iniciar uma ligação SIP
+// VapiTestCall triggers a test call via Vapi.ai SIP
+// @Summary Testar ligação via Vapi.ai
+// @Description Dispara uma ligação de teste usando a integração SIP com o Vapi.ai. O SIP deve estar habilitado e configurado com o token do Vapi na instância.
+// @Tags WaCalls
+// @Accept json
+// @Produce json
+// @Param instanceName path string true "Nome da instância"
+// @Param request body object true "Dados do teste Vapi" example({"assistantId":"asst_xxx","phoneNumberId":"phone_xxx","customerNumber":"+5511999999999"})
+// @Success 200 {object} object "Ligação Vapi iniciada" example({"status":"success","data":{}})
+// @Failure 400 {object} object "SIP não habilitado ou dados inválidos"
+// @Failure 500 {object} object "Erro ao chamar Vapi"
+// @Router /instance/{instanceName}/wacalls/vapi-test [post]
+// @Security ApiKeyAuth
 func (h *callHandler) VapiTestCall(ctx *gin.Context) {
 	getInstance := ctx.MustGet("instance")
 	instance, ok := getInstance.(*instance_model.Instance)
@@ -187,6 +224,17 @@ func (h *callHandler) VapiTestCall(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"status": "success", "data": result})
 }
 
+// EndCall terminates an active call
+// @Summary Encerrar ligação
+// @Description Encerra uma ligação ativa nesta instância.
+// @Tags WaCalls
+// @Accept json
+// @Produce json
+// @Param instanceName path string true "Nome da instância"
+// @Param id path string true "ID da ligação"
+// @Success 204 "Ligação encerrada"
+// @Router /instance/{instanceName}/wacalls/{id}/end [post]
+// @Security ApiKeyAuth
 func (h *callHandler) EndCall(ctx *gin.Context) {
 	getInstance := ctx.MustGet("instance")
 	instance, _ := getInstance.(*instance_model.Instance)

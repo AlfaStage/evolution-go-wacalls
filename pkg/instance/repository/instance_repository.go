@@ -205,6 +205,11 @@ func (i *instanceRepository) UpdateAdvancedSettings(instanceId string, settings 
 		"read_messages":   settings.ReadMessages,
 		"ignore_groups":   settings.IgnoreGroups,
 		"ignore_status":   settings.IgnoreStatus,
+		"sip_enable":      settings.SipEnable,
+		"sip_host":        settings.SipHost,
+		"sip_port":        settings.SipPort,
+		"sip_user":        settings.SipUser,
+		"sip_password":    settings.SipPassword,
 	}
 
 	err := i.db.Model(&instance_model.Instance{}).Where("id = ?", instanceId).Updates(updates).Error

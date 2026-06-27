@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"encoding/json"
+	"context"
 	"net/http"
 	"strings"
 
@@ -105,11 +105,6 @@ func (h *callHandler) StartCall(ctx *gin.Context) {
 // @Param request body map[string]interface{} true "SDP offer"
 // @Router /instance/{instanceName}/calls/{id}/webrtc [post]
 func (h *callHandler) WebRTC(ctx *gin.Context) {
-	getInstance := ctx.MustGet("instance")
-	instance, _ := getInstance.(*instance_model.Instance)
-
-	callID := ctx.Param("id")
-	svc := call_service.GetCallService()
 	
 	// Para este endpoint precisaríamos do Bridge, mas como o WaCalls lida com 
 	// PCM nativamente, o Bridge precisa ser instanciado aqui (como em httpapi.go do WaCalls).

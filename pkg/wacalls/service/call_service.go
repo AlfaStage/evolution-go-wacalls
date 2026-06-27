@@ -9,7 +9,6 @@ import (
 
 	"github.com/EvolutionAPI/evolution-go/pkg/wacalls/wa"
 	"github.com/EvolutionAPI/evolution-go/pkg/wacalls/voip/call"
-	"github.com/EvolutionAPI/evolution-go/pkg/wacalls/voip/core"
 	"github.com/EvolutionAPI/evolution-go/pkg/wacalls/voip/signaling"
 	"go.mau.fi/whatsmeow"
 	"go.mau.fi/whatsmeow/types"
@@ -133,38 +132,26 @@ func (s *CallService) HandleEvent(instanceId string, client *whatsmeow.Client, e
 		cm.OnEnded = func(c *call.CallInfo) {
 			s.RemoveCall(instanceId, c.CallID)
 		}
-		node := wrapCall(e.BasicCallEvent.From, e.Data)
-		cm.HandleNode(node)
-
-	case *events.CallOfferInvite:
-		callID := e.CallID
-		if ac, ok := reg.get(callID); ok {
-			node := wrapCall(e.BasicCallEvent.From, e.Data)
-			ac.cm.HandleNode(node)
-		}
+		go cm.HandleCallOffer(context.Background(), e.Data, e.From)
 
 	case *events.CallAccept:
 		if ac, ok := reg.get(e.CallID); ok {
-			node := wrapCall(e.BasicCallEvent.From, e.Data)
-			ac.cm.HandleNode(node)
+			go ac.cm.HandleCallAccept(context.Background(), e.Data, e.From)
 		}
 
 	case *events.CallReject:
 		if ac, ok := reg.get(e.CallID); ok {
-			node := wrapCall(e.BasicCallEvent.From, e.Data)
-			ac.cm.HandleNode(node)
+			go ac.cm.HandleCallTerminate(e.Data)
 		}
 
 	case *events.CallTerminate:
 		if ac, ok := reg.get(e.CallID); ok {
-			node := wrapCall(e.BasicCallEvent.From, e.Data)
-			ac.cm.HandleNode(node)
+			go ac.cm.HandleCallTerminate(e.Data)
 		}
 
-	case *events.CallRelayLatency:
+	case *events.CallTransport:
 		if ac, ok := reg.get(e.CallID); ok {
-			node := wrapCall(e.BasicCallEvent.From, e.Data)
-			ac.cm.HandleNode(node)
+			go ac.cm.HandleCallTransport(context.Background(), e.Data, e.From)
 		}
 	}
 }

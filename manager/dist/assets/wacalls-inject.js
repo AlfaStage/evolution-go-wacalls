@@ -293,11 +293,17 @@
     section.className = 'wacalls-section';
     section.setAttribute(INJECTED_ATTR, 'sip');
 
-    const sipEnable = instance.sipEnable || false;
-    const sipHost = instance.sipHost || '';
-    const sipPort = instance.sipPort || 5060;
-    const sipUser = instance.sipUser || '';
-    const sipPassword = instance.sipPassword || '';
+    let sipEnable = instance.sipEnable || false;
+    let sipHost = instance.sipHost || '';
+    let sipPort = instance.sipPort || '';
+    let sipUser = instance.sipUser || '';
+    let sipPassword = instance.sipPassword || '';
+
+    // Auto-generate default SIP values if they are empty
+    if (!sipHost) sipHost = window.location.hostname;
+    if (!sipPort) sipPort = 5060;
+    if (!sipUser) sipUser = instance.name || 'user_' + Math.floor(Math.random() * 10000);
+    if (!sipPassword) sipPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
 
     section.innerHTML = `
       <h3><span class="wacalls-icon">📞</span> WaCalls — Configurações SIP / Vapi</h3>
@@ -350,8 +356,8 @@
 
     // Save
     section.querySelector('#wacalls-sip-save').addEventListener('click', async () => {
-      const instanceId = getInstanceId();
-      if (!instanceId) { showToast('ID da instância não encontrado', 'error'); return; }
+      const instanceId = instance.id;
+      if (!instanceId) { showToast('ID da instância não encontrado (banco de dados)', 'error'); return; }
 
       const payload = {
         alwaysOnline: instance.alwaysOnline || false,

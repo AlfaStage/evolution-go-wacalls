@@ -21,13 +21,6 @@
     return m ? m[1] : null;
   }
 
-  function getInstanceName() {
-    try {
-      const raw = localStorage.getItem('instance') || localStorage.getItem('instanceName') || '';
-      return raw.replace(/"/g, '');
-    } catch { return ''; }
-  }
-
   async function apiFetch(path, opts = {}) {
     const key = getApiKey();
     const base = location.origin;
@@ -48,161 +41,47 @@
     const style = document.createElement('style');
     style.id = 'wacalls-styles';
     style.textContent = `
-      .wacalls-section {
-        margin-top: 24px;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        background: rgba(255,255,255,0.03);
-        padding: 24px;
+      .wacalls-container {
         animation: wacalls-fadein 0.35s ease;
       }
       @keyframes wacalls-fadein {
         from { opacity: 0; transform: translateY(8px); }
         to { opacity: 1; transform: translateY(0); }
       }
-      .wacalls-section h3 {
-        font-size: 16px;
-        font-weight: 600;
-        margin: 0 0 6px 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .wacalls-section h3 .wacalls-icon {
-        font-size: 20px;
-      }
-      .wacalls-section .wacalls-desc {
-        font-size: 13px;
-        opacity: 0.6;
-        margin: 0 0 20px 0;
-      }
-      .wacalls-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 14px;
-      }
-      @media (max-width: 640px) {
-        .wacalls-grid { grid-template-columns: 1fr; }
-      }
-      .wacalls-field {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-      }
-      .wacalls-field.full {
-        grid-column: 1 / -1;
-      }
-      .wacalls-field label {
-        font-size: 12px;
-        font-weight: 500;
-        opacity: 0.7;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-      }
-      .wacalls-field input, .wacalls-field select {
-        background: rgba(255,255,255,0.06);
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 8px;
-        padding: 10px 12px;
-        font-size: 14px;
-        color: inherit;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .wacalls-field input:focus, .wacalls-field select:focus {
-        border-color: #7c3aed;
-      }
-      .wacalls-field input::placeholder {
-        opacity: 0.35;
-      }
-      .wacalls-toggle-row {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px 0;
-        border-bottom: 1px solid rgba(255,255,255,0.06);
-        margin-bottom: 16px;
-      }
-      .wacalls-toggle-row .wacalls-toggle-label {
-        font-size: 14px;
-        font-weight: 500;
-      }
       .wacalls-switch {
         position: relative;
+        display: inline-block;
         width: 44px;
         height: 24px;
+      }
+      .wacalls-switch input { opacity: 0; width: 0; height: 0; }
+      .wacalls-slider {
+        position: absolute;
         cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: hsl(var(--input));
+        transition: .4s;
+        border-radius: 34px;
       }
-      .wacalls-switch input {
-        opacity: 0; width: 0; height: 0;
-      }
-      .wacalls-switch .slider {
+      .wacalls-slider:before {
         position: absolute;
-        inset: 0;
-        background: rgba(255,255,255,0.15);
-        border-radius: 24px;
-        transition: background 0.25s;
-      }
-      .wacalls-switch .slider::before {
-        content: '';
-        position: absolute;
-        width: 18px;
+        content: "";
         height: 18px;
+        width: 18px;
         left: 3px;
         bottom: 3px;
-        background: white;
+        background-color: hsl(var(--background));
+        transition: .4s;
         border-radius: 50%;
-        transition: transform 0.25s;
       }
-      .wacalls-switch input:checked + .slider {
-        background: #7c3aed;
+      .wacalls-switch input:checked + .wacalls-slider {
+        background-color: hsl(var(--primary));
       }
-      .wacalls-switch input:checked + .slider::before {
+      .wacalls-switch input:focus + .wacalls-slider {
+        box-shadow: 0 0 1px hsl(var(--primary));
+      }
+      .wacalls-switch input:checked + .wacalls-slider:before {
         transform: translateX(20px);
-      }
-      .wacalls-actions {
-        display: flex;
-        gap: 10px;
-        margin-top: 20px;
-        flex-wrap: wrap;
-      }
-      .wacalls-btn {
-        padding: 10px 20px;
-        border: none;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        transition: all 0.2s;
-      }
-      .wacalls-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-      }
-      .wacalls-btn-primary {
-        background: #7c3aed;
-        color: white;
-      }
-      .wacalls-btn-primary:hover:not(:disabled) {
-        background: #6d28d9;
-      }
-      .wacalls-btn-secondary {
-        background: rgba(255,255,255,0.08);
-        color: inherit;
-        border: 1px solid rgba(255,255,255,0.12);
-      }
-      .wacalls-btn-secondary:hover:not(:disabled) {
-        background: rgba(255,255,255,0.14);
-      }
-      .wacalls-btn-success {
-        background: #059669;
-        color: white;
-      }
-      .wacalls-btn-success:hover:not(:disabled) {
-        background: #047857;
       }
       .wacalls-toast {
         position: fixed;
@@ -219,14 +98,8 @@
       }
       .wacalls-toast.success { background: #059669; }
       .wacalls-toast.error { background: #dc2626; }
-      .wacalls-toast.info { background: #2563eb; }
-      .wacalls-divider {
-        border: none;
-        border-top: 1px solid rgba(255,255,255,0.06);
-        margin: 20px 0;
-      }
-
-      /* ── Test Call Modal ── */
+      
+      /* Modais */
       .wacalls-modal-overlay {
         position: fixed;
         inset: 0;
@@ -238,39 +111,14 @@
         animation: wacalls-fadein 0.2s ease;
       }
       .wacalls-modal {
-        background: #1e1e2e;
-        border: 1px solid rgba(255,255,255,0.1);
-        border-radius: 16px;
-        padding: 28px;
+        background: hsl(var(--card));
+        color: hsl(var(--card-foreground));
+        border: 1px solid hsl(var(--border));
+        border-radius: 12px;
+        padding: 24px;
         width: 460px;
         max-width: 92vw;
         box-shadow: 0 20px 60px rgba(0,0,0,0.5);
-      }
-      .wacalls-modal h3 {
-        margin: 0 0 6px 0;
-        font-size: 18px;
-        font-weight: 600;
-      }
-      .wacalls-modal .wacalls-desc {
-        font-size: 13px;
-        opacity: 0.6;
-        margin: 0 0 20px 0;
-      }
-      .wacalls-modal-actions {
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-        margin-top: 22px;
-      }
-
-      /* ── Direct Call Section ── */
-      .wacalls-call-section {
-        margin-top: 24px;
-        border: 1px solid rgba(255,255,255,0.08);
-        border-radius: 12px;
-        background: rgba(255,255,255,0.03);
-        padding: 24px;
-        animation: wacalls-fadein 0.35s ease;
       }
     `;
     document.head.appendChild(style);
@@ -290,7 +138,7 @@
   // ── SIP Settings Section ─────────────────────────────────────────
   function buildSipSection(instance) {
     const section = document.createElement('div');
-    section.className = 'wacalls-section';
+    section.className = 'wacalls-container space-y-6 mt-6';
     section.setAttribute(INJECTED_ATTR, 'sip');
 
     let sipEnable = instance.sipEnable || false;
@@ -302,44 +150,67 @@
     // Auto-generate default SIP values if they are empty
     if (!sipHost) sipHost = window.location.hostname;
     if (!sipPort) sipPort = 5060;
-    if (!sipUser) sipUser = instance.name || 'user_' + Math.floor(Math.random() * 10000);
-    if (!sipPassword) sipPassword = Math.random().toString(36).slice(-8) + Math.random().toString(36).slice(-8);
+    if (!sipUser) sipUser = instance.name || instance.instanceName;
+    if (!sipPassword) sipPassword = instance.token || '';
 
     section.innerHTML = `
-      <h3><span class="wacalls-icon">📞</span> WaCalls — Configurações SIP / Vapi</h3>
-      <p class="wacalls-desc">Configure a integração SIP para ligações via WhatsApp com Vapi.ai. Ative para habilitar chamadas de voz nesta instância.</p>
+      <div class="rounded-xl border bg-card text-card-foreground shadow">
+        <div class="p-6">
+          <div class="flex items-center gap-2 mb-2">
+            <span class="text-xl">📞</span>
+            <h3 class="text-lg font-semibold tracking-tight">WaCalls — Configurações SIP</h3>
+          </div>
+          <p class="text-sm text-muted-foreground mb-6">Configure a integração SIP para ligações via WhatsApp. Ative para habilitar chamadas de voz nesta instância.</p>
 
-      <div class="wacalls-toggle-row">
-        <span class="wacalls-toggle-label">Habilitar SIP / Chamadas</span>
-        <label class="wacalls-switch">
-          <input type="checkbox" id="wacalls-sip-enable" ${sipEnable ? 'checked' : ''} />
-          <span class="slider"></span>
-        </label>
+          <div class="flex items-center justify-between py-3 border-b border-border mb-4">
+            <span class="text-sm font-medium">Habilitar SIP / Chamadas</span>
+            <label class="wacalls-switch">
+              <input type="checkbox" id="wacalls-sip-enable" ${sipEnable ? 'checked' : ''} />
+              <span class="wacalls-slider"></span>
+            </label>
+          </div>
+
+          <div id="wacalls-sip-fields" class="grid grid-cols-1 sm:grid-cols-2 gap-4 transition-opacity" style="${sipEnable ? '' : 'opacity:0.4;pointer-events:none;'}">
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">SIP Host / Servidor</label>
+              <input type="text" id="wacalls-sip-host" value="${sipHost}" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Porta SIP</label>
+              <input type="number" id="wacalls-sip-port" value="${sipPort}" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Usuário SIP</label>
+              <input type="text" id="wacalls-sip-user" value="${sipUser}" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+            <div class="space-y-2">
+              <label class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Senha / API Key (Vapi Token)</label>
+              <input type="password" id="wacalls-sip-password" value="${sipPassword}" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50" />
+            </div>
+          </div>
+
+          <div class="mt-6 flex justify-end">
+            <button type="button" id="wacalls-sip-save" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2">
+              💾 Salvar Configurações SIP
+            </button>
+          </div>
+        </div>
       </div>
 
-      <div class="wacalls-grid" id="wacalls-sip-fields" style="${sipEnable ? '' : 'opacity:0.4;pointer-events:none;'}">
-        <div class="wacalls-field">
-          <label>SIP Host / Servidor</label>
-          <input type="text" id="wacalls-sip-host" value="${sipHost}" placeholder="sip.vapi.ai" />
-        </div>
-        <div class="wacalls-field">
-          <label>Porta SIP</label>
-          <input type="number" id="wacalls-sip-port" value="${sipPort}" placeholder="5060" />
-        </div>
-        <div class="wacalls-field">
-          <label>Usuário SIP</label>
-          <input type="text" id="wacalls-sip-user" value="${sipUser}" placeholder="user@sip.vapi.ai" />
-        </div>
-        <div class="wacalls-field">
-          <label>Senha / API Key (Vapi Token)</label>
-          <input type="password" id="wacalls-sip-password" value="${sipPassword}" placeholder="vapi_xxxxxxxx" />
-        </div>
-      </div>
+      <div class="rounded-xl border bg-card text-card-foreground shadow mt-6">
+        <div class="p-6">
+          <h3 class="text-lg font-semibold tracking-tight mb-2">WaCalls — Integração Vapi e Ligações</h3>
+          <p class="text-sm text-muted-foreground mb-6">Teste de chamadas SIP e Ligações VoIP direto pelo WhatsApp.</p>
 
-      <div class="wacalls-actions">
-        <button class="wacalls-btn wacalls-btn-primary" id="wacalls-sip-save">💾 Salvar Configurações</button>
-        <button class="wacalls-btn wacalls-btn-success" id="wacalls-sip-test" ${sipEnable ? '' : 'disabled'}>🧪 Testar Ligação (Vapi)</button>
-        <button class="wacalls-btn wacalls-btn-secondary" id="wacalls-direct-call-btn">📲 Ligação Direta WhatsApp</button>
+          <div class="flex gap-4 flex-wrap">
+            <button type="button" id="wacalls-sip-test" ${sipEnable ? '' : 'disabled'} class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 py-2">
+              🧪 Testar Ligação (Vapi)
+            </button>
+            <button type="button" id="wacalls-direct-call-btn" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">
+              📲 Ligação Direta WhatsApp
+            </button>
+          </div>
+        </div>
       </div>
     `;
 
@@ -355,7 +226,10 @@
     });
 
     // Save
-    section.querySelector('#wacalls-sip-save').addEventListener('click', async () => {
+    section.querySelector('#wacalls-sip-save').addEventListener('click', async (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+
       const instanceId = instance.id;
       if (!instanceId) { showToast('ID da instância não encontrado (banco de dados)', 'error'); return; }
 
@@ -386,43 +260,47 @@
     });
 
     // Test Vapi Call
-    section.querySelector('#wacalls-sip-test').addEventListener('click', () => {
-      openVapiTestModal();
+    section.querySelector('#wacalls-sip-test').addEventListener('click', (e) => {
+      e.preventDefault();
+      openVapiTestModal(instance);
     });
 
     // Direct WhatsApp Call
-    section.querySelector('#wacalls-direct-call-btn').addEventListener('click', () => {
-      openDirectCallModal();
+    section.querySelector('#wacalls-direct-call-btn').addEventListener('click', (e) => {
+      e.preventDefault();
+      openDirectCallModal(instance);
     });
 
     return section;
   }
 
   // ── Vapi Test Modal ─────────────────────────────────────────────
-  function openVapiTestModal() {
+  function openVapiTestModal(instance) {
     const overlay = document.createElement('div');
     overlay.className = 'wacalls-modal-overlay';
     overlay.innerHTML = `
       <div class="wacalls-modal">
-        <h3>🧪 Testar Ligação via Vapi.ai</h3>
-        <p class="wacalls-desc">Preencha os dados do Vapi para disparar uma ligação de teste via SIP.</p>
-        <div class="wacalls-grid" style="grid-template-columns:1fr;">
-          <div class="wacalls-field">
-            <label>Assistant ID</label>
-            <input type="text" id="wacalls-vapi-assistant" placeholder="ID do assistente Vapi" />
+        <h3 class="text-lg font-semibold tracking-tight mb-2">🧪 Testar Ligação via Vapi.ai</h3>
+        <p class="text-sm text-muted-foreground mb-6">Preencha os dados do Vapi para disparar uma ligação de teste via SIP.</p>
+        
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium">Assistant ID</label>
+            <input type="text" id="wacalls-vapi-assistant" placeholder="ID do assistente Vapi" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
-          <div class="wacalls-field">
-            <label>Phone Number ID</label>
-            <input type="text" id="wacalls-vapi-phone" placeholder="ID do número no Vapi" />
+          <div class="space-y-2">
+            <label class="text-sm font-medium">Phone Number ID</label>
+            <input type="text" id="wacalls-vapi-phone" placeholder="ID do número no Vapi" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
-          <div class="wacalls-field">
-            <label>Número do Cliente</label>
-            <input type="text" id="wacalls-vapi-customer" placeholder="+5511999999999" />
+          <div class="space-y-2">
+            <label class="text-sm font-medium">Número do Cliente</label>
+            <input type="text" id="wacalls-vapi-customer" placeholder="+5511999999999" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
         </div>
-        <div class="wacalls-modal-actions">
-          <button class="wacalls-btn wacalls-btn-secondary" id="wacalls-vapi-cancel">Cancelar</button>
-          <button class="wacalls-btn wacalls-btn-success" id="wacalls-vapi-send">📞 Iniciar Ligação</button>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" id="wacalls-vapi-cancel" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">Cancelar</button>
+          <button type="button" id="wacalls-vapi-send" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 py-2">📞 Iniciar Ligação</button>
         </div>
       </div>
     `;
@@ -441,8 +319,7 @@
         return;
       }
 
-      const instName = getInstanceName();
-      if (!instName) {
+      if (!instance.name) {
         showToast('Nome da instância não encontrado. Verifique se está conectada.', 'error');
         return;
       }
@@ -452,7 +329,7 @@
       btn.textContent = '⏳ Ligando...';
 
       try {
-        const res = await apiFetch(`/instance/${instName}/wacalls/vapi-test`, {
+        const res = await apiFetch(`/instance/${instance.name}/wacalls/vapi-test`, {
           method: 'POST',
           body: JSON.stringify({ assistantId, phoneNumberId, customerNumber }),
         });
@@ -468,22 +345,24 @@
   }
 
   // ── Direct WhatsApp Call Modal ──────────────────────────────────
-  function openDirectCallModal() {
+  function openDirectCallModal(instance) {
     const overlay = document.createElement('div');
     overlay.className = 'wacalls-modal-overlay';
     overlay.innerHTML = `
       <div class="wacalls-modal">
-        <h3>📲 Ligação Direta via WhatsApp</h3>
-        <p class="wacalls-desc">Inicia uma ligação VoIP direta pelo WhatsApp conectado nesta instância.</p>
-        <div class="wacalls-grid" style="grid-template-columns:1fr;">
-          <div class="wacalls-field">
-            <label>Número de Telefone</label>
-            <input type="text" id="wacalls-direct-phone" placeholder="+5511999999999" />
+        <h3 class="text-lg font-semibold tracking-tight mb-2">📲 Ligação Direta via WhatsApp</h3>
+        <p class="text-sm text-muted-foreground mb-6">Inicia uma ligação VoIP direta pelo WhatsApp conectado nesta instância.</p>
+        
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <label class="text-sm font-medium">Número de Telefone</label>
+            <input type="text" id="wacalls-direct-phone" placeholder="+5511999999999" class="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm" />
           </div>
         </div>
-        <div class="wacalls-modal-actions">
-          <button class="wacalls-btn wacalls-btn-secondary" id="wacalls-direct-cancel">Cancelar</button>
-          <button class="wacalls-btn wacalls-btn-success" id="wacalls-direct-send">📞 Ligar</button>
+
+        <div class="mt-6 flex justify-end gap-3">
+          <button type="button" id="wacalls-direct-cancel" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-10 px-4 py-2">Cancelar</button>
+          <button type="button" id="wacalls-direct-send" class="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 h-10 px-4 py-2">📞 Ligar</button>
         </div>
       </div>
     `;
@@ -499,8 +378,7 @@
         return;
       }
 
-      const instName = getInstanceName();
-      if (!instName) {
+      if (!instance.name) {
         showToast('Nome da instância não encontrado. Verifique se está conectada.', 'error');
         return;
       }
@@ -510,12 +388,12 @@
       btn.textContent = '⏳ Ligando...';
 
       try {
-        const res = await apiFetch(`/instance/${instName}/wacalls/start`, {
+        const res = await apiFetch(`/instance/${instance.name}/wacalls/start`, {
           method: 'POST',
           body: JSON.stringify({ phone }),
         });
         if (res.error) throw new Error(res.error);
-        showToast(`Ligação iniciada! Call ID: ${res.call?.callId || 'N/A'}`, 'success');
+        showToast(\`Ligação iniciada! Call ID: \${res.call?.callId || 'N/A'}\`, 'success');
         overlay.remove();
       } catch (err) {
         showToast('Erro: ' + err.message, 'error');
@@ -548,10 +426,10 @@
     }
 
     // Já foi injetado?
-    if (document.querySelector(`[${INJECTED_ATTR}="sip"]`)) {
+    if (document.querySelector(\`[\${INJECTED_ATTR}="sip"]\`)) {
       // Se o path mudou, remover para reinjetar
       if (path !== lastPath) {
-        document.querySelector(`[${INJECTED_ATTR}="sip"]`).remove();
+        document.querySelector(\`[\${INJECTED_ATTR}="sip"]\`).remove();
       } else {
         return;
       }

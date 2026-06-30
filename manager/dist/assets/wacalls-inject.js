@@ -393,7 +393,7 @@
           body: JSON.stringify({ phone }),
         });
         if (res.error) throw new Error(res.error);
-        showToast(\`Ligação iniciada! Call ID: \${res.call?.callId || 'N/A'}\`, 'success');
+        showToast(`Ligação iniciada! Call ID: ${res.call?.callId || 'N/A'}`, 'success');
         overlay.remove();
       } catch (err) {
         showToast('Erro: ' + err.message, 'error');
@@ -426,10 +426,10 @@
     }
 
     // Já foi injetado?
-    if (document.querySelector(\`[\${INJECTED_ATTR}="sip"]\`)) {
+    if (document.querySelector(`[${INJECTED_ATTR}="sip"]`)) {
       // Se o path mudou, remover para reinjetar
       if (path !== lastPath) {
-        document.querySelector(\`[\${INJECTED_ATTR}="sip"]\`).remove();
+        document.querySelector(`[${INJECTED_ATTR}="sip"]`).remove();
       } else {
         return;
       }

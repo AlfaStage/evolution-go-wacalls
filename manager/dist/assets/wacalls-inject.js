@@ -59,7 +59,7 @@
         position: absolute;
         cursor: pointer;
         top: 0; left: 0; right: 0; bottom: 0;
-        background-color: hsl(var(--input));
+        background-color: var(--input, #3f3f46);
         transition: .4s;
         border-radius: 34px;
       }
@@ -70,15 +70,15 @@
         width: 18px;
         left: 3px;
         bottom: 3px;
-        background-color: hsl(var(--background));
+        background-color: var(--background, #ffffff);
         transition: .4s;
         border-radius: 50%;
       }
       .wacalls-switch input:checked + .wacalls-slider {
-        background-color: hsl(var(--primary));
+        background-color: var(--primary, #7c3aed);
       }
       .wacalls-switch input:focus + .wacalls-slider {
-        box-shadow: 0 0 1px hsl(var(--primary));
+        box-shadow: 0 0 1px var(--primary, #7c3aed);
       }
       .wacalls-switch input:checked + .wacalls-slider:before {
         transform: translateX(20px);
@@ -111,9 +111,9 @@
         animation: wacalls-fadein 0.2s ease;
       }
       .wacalls-modal {
-        background: hsl(var(--card));
-        color: hsl(var(--card-foreground));
-        border: 1px solid hsl(var(--border));
+        background: var(--card, #1e1e2e);
+        color: var(--card-foreground, #ffffff);
+        border: 1px solid var(--border, rgba(255,255,255,0.1));
         border-radius: 12px;
         padding: 24px;
         width: 460px;
@@ -304,7 +304,7 @@
         </div>
       </div>
     `;
-    document.body.appendChild(overlay);
+    (document.getElementById('root') || document.body).appendChild(overlay);
 
     overlay.querySelector('#wacalls-vapi-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
@@ -319,7 +319,8 @@
         return;
       }
 
-      if (!instance.name) {
+      const instName = instance.name || instance.instanceName || instance.id;
+      if (!instName) {
         showToast('Nome da instância não encontrado. Verifique se está conectada.', 'error');
         return;
       }
@@ -329,7 +330,7 @@
       btn.textContent = '⏳ Ligando...';
 
       try {
-        const res = await apiFetch(`/instance/${instance.name}/wacalls/vapi-test`, {
+        const res = await apiFetch(`/instance/${instName}/wacalls/vapi-test`, {
           method: 'POST',
           body: JSON.stringify({ assistantId, phoneNumberId, customerNumber }),
         });
@@ -366,7 +367,7 @@
         </div>
       </div>
     `;
-    document.body.appendChild(overlay);
+    (document.getElementById('root') || document.body).appendChild(overlay);
 
     overlay.querySelector('#wacalls-direct-cancel').addEventListener('click', () => overlay.remove());
     overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.remove(); });
@@ -378,7 +379,8 @@
         return;
       }
 
-      if (!instance.name) {
+      const instName = instance.name || instance.instanceName || instance.id;
+      if (!instName) {
         showToast('Nome da instância não encontrado. Verifique se está conectada.', 'error');
         return;
       }
@@ -388,7 +390,7 @@
       btn.textContent = '⏳ Ligando...';
 
       try {
-        const res = await apiFetch(`/instance/${instance.name}/wacalls/start`, {
+        const res = await apiFetch(`/instance/${instName}/wacalls/start`, {
           method: 'POST',
           body: JSON.stringify({ phone }),
         });

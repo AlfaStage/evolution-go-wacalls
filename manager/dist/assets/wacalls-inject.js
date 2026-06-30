@@ -410,8 +410,8 @@
     const instanceId = getInstanceId();
     if (!instanceId) return null;
     try {
-      const data = await apiFetch(`/instance/info/${instanceId}`);
-      return data.instance || data;
+      const res = await apiFetch(`/instance/info/${instanceId}`);
+      return res.data || res.instance || res;
     } catch { return null; }
   }
 
